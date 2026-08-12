@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Student Management System — add, search, edit and delete student records.">
+    <title>Student Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-wrapper">
+
+    <!-- ── Toast Notification Container ───────────────────────────── -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+    <!-- ── Application Header ──────────────────────────────────────── -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="header-brand">
+                <div class="brand-icon" aria-hidden="true">🎓</div>
+                <span class="brand-name">Student Management</span>
+                <span class="brand-version">● Live</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── Main Content ─────────────────────────────────────────────── -->
+    <main class="app-main">
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title-group">
+                <h1>Students</h1>
+                <p>Manage student records — add, search, update and delete.</p>
+            </div>
+            <button
+                id="open-add-modal-btn"
+                class="btn btn-primary btn-md"
+                aria-haspopup="dialog"
+                aria-controls="student-form-modal">
+                + Add Student
+            </button>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-row" role="region" aria-label="Summary Statistics">
+            <div class="stat-card">
+                <div class="stat-icon blue" aria-hidden="true">👥</div>
+                <div class="stat-info">
+                    <span id="stat-total" class="stat-value">—</span>
+                    <span class="stat-label">Total Students</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green" aria-hidden="true">📚</div>
+                <div class="stat-info">
+                    <span id="stat-courses" class="stat-value">—</span>
+                    <span class="stat-label">Unique Courses</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon amber" aria-hidden="true">📊</div>
+                <div class="stat-info">
+                    <span id="stat-avg-age" class="stat-value">—</span>
+                    <span class="stat-label">Average Age</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student List Section -->
+        <section class="list-section" aria-labelledby="list-heading">
+
+            <!-- Toolbar: Search + Refresh -->
+            <div class="list-toolbar">
+                <div class="search-wrapper">
+                    <span class="search-icon" aria-hidden="true">🔍</span>
+                    <input
+                        type="search"
+                        id="search-input"
+                        class="search-input"
+                        placeholder="Search by name, email or course…"
+                        aria-label="Search students">
+                </div>
+                <button
+                    id="refresh-btn"
+                    class="btn btn-secondary btn-md"
+                    title="Refresh student list"
+                    aria-label="Refresh student list">
+                    ↻ Refresh
+                </button>
+            </div>
+
+            <!-- Desktop Table -->
+            <div class="table-wrap">
+                <table class="data-table" aria-label="Student records">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Course</th>
+                            <th scope="col">Age</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div id="mobile-cards" class="mobile-cards" aria-label="Student records"></div>
+
+            <!-- Loading / Empty / Error State -->
+            <div id="state-container"></div>
+
+        </section>
+    </main>
+
+</div><!-- /.app-wrapper -->
+
+<!-- ── Add / Edit Student Modal ─────────────────────────────────── -->
+<div
+    id="student-form-modal"
+    class="modal-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="form-modal-title">
+
+    <div class="modal" id="student-form-modal-box">
+        <div class="modal-header">
+            <h2 id="form-modal-title" class="modal-title">Add Student</h2>
+            <button class="modal-close" id="form-modal-close-btn" aria-label="Close form">✕</button>
+        </div>
+
+        <div class="modal-body">
+            <form id="student-form" novalidate>
+                <input type="hidden" id="field-id">
+
+                <!-- Row 1: Name + Email -->
+                <div class="form-grid-2" style="margin-bottom:16px;">
+                    <div class="form-field">
+                        <label class="form-label" for="field-name">
+                            Full Name <span class="required">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="field-name"
+                            class="form-input"
+                            placeholder="e.g. Peter Parker"
+                            autocomplete="name"
+                            required>
+                        <span id="err-name" class="field-error" aria-live="polite"></span>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label" for="field-email">
+                            Email <span class="required">*</span>
+                        </label>
+                        <input
+                            type="email"
+                            id="field-email"
+                            class="form-input"
+                            placeholder="e.g. peter@example.com"
+                            autocomplete="email"
+                            required>
+                        <span id="err-email" class="field-error" aria-live="polite"></span>
+                    </div>
+                </div>
+
+                <!-- Row 2: Course + Age -->
+                <div class="form-grid-2">
+                    <div class="form-field">
+                        <label class="form-label" for="field-course">
+                            Course / Major <span class="required">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="field-course"
+                            class="form-input"
+                            placeholder="e.g. Computer Science"
+                            required>
+                        <span id="err-course" class="field-error" aria-live="polite"></span>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label" for="field-age">
+                            Age <span class="required">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            id="field-age"
+                            class="form-input"
+                            placeholder="e.g. 21"
+                            min="10"
+                            max="100"
+                            required>
+                        <span id="err-age" class="field-error" aria-live="polite"></span>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" id="form-cancel-btn" class="btn btn-secondary btn-md">Cancel</button>
+            <button type="button" id="form-submit-btn" class="btn btn-primary btn-md">
+                <span id="submit-label">Add Student</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Delete Confirmation Modal ─────────────────────────────────── -->
+<div
+    id="delete-modal"
+    class="modal-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="delete-modal-title">
+
+    <div class="modal modal-confirm">
+        <div class="modal-body">
+            <div class="confirm-icon" aria-hidden="true">⚠️</div>
+            <div id="delete-modal-title" class="confirm-title">Delete Student?</div>
+            <p id="delete-modal-desc" class="confirm-desc">
+                Are you sure you want to delete <strong id="delete-student-name">this student</strong>?
+                This action cannot be undone.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="delete-cancel-btn" class="btn btn-secondary btn-md">Cancel</button>
+            <button type="button" id="delete-confirm-btn" class="btn btn-danger-solid btn-md">Delete</button>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
