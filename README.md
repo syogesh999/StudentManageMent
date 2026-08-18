@@ -1,6 +1,6 @@
-# 🎓 Student Management System — Spring Boot Learning Lab
+# 🎓 Student Management System
 
-A minimal, clean Spring Boot Student CRUD application with a modern flat-design web UI.
+A minimal, clean Spring Boot Student CRUD application
 
 ---
 
