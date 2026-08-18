@@ -1,87 +1,83 @@
 package com.example.service;
 
 import com.example.model.Student;
+import com.example.repository.StudentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Service Layer responsible for Student business logic and in-memory data management.
- * 
- * Why Service Layer exists:
- * - Separation of Concerns: The Controller handles HTTP concerns (parsing URLs, JSON conversion, HTTP statuses).
- *   The Service handles domain business rules (creating IDs, updating records, validating data).
- * - Reusability & Testability: Business logic can be tested independently of HTTP/Web infrastructure.
- * 
- * Note: Data is stored in memory using ConcurrentHashMap. It resets whenever the application restarts!
+ * Service Layer responsible for Student business logic and transaction management.
+ *
+ * Architecture:
+ * - Handles domain business rules and transaction boundaries.
+ * - Delegates database operations to Spring Data JPA repository.
  */
 @Service
+@Transactional(readOnly = true)
 public class StudentService {
 
-    // Thread-safe in-memory map storing student ID -> Student object
-    private final Map<Long, Student> studentMap = new ConcurrentHashMap<>();
-    
-    // Thread-safe ID counter initialized for new student creation
-    private final AtomicLong idCounter = new AtomicLong(3);
+    private final StudentRepository studentRepository;
 
-    public StudentService() {
-        // Pre-populate with 3 sample fictional students
-        studentMap.put(1L, new Student(1L, "Peter Parker", "peter@example.com", "Computer Science", 21));
-        studentMap.put(2L, new Student(2L, "Tony Stark", "tony@example.com", "Electrical Engineering", 35));
-        studentMap.put(3L, new Student(3L, "Steve Rogers", "steve@example.com", "History & Tactics", 28));
+    public StudentService(StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
     }
 
     /**
-     * Retrieve all students.
+     * Retrieve all students from the database.
      */
     public List<Student> getAllStudents() {
-        return new ArrayList<>(studentMap.values());
+        List<Student> students = studentRepository.findAll();
+        return students != null ? students : Collections.emptyList();
     }
 
     /**
-     * Retrieve a single student by ID. Safe against null IDs.
+     * Retrieve a single student by ID.
      */
     public Optional<Student> getStudentById(Long id) {
         if (id == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(studentMap.get(id));
+        return studentRepository.findById(id);
     }
 
     /**
-     * Create a new student with auto-generated ID.
+     * Create and persist a new student.
      */
+    @Transactional
     public Student createStudent(Student student) {
-        Long newId = idCounter.incrementAndGet();
-        student.setId(newId);
-        studentMap.put(newId, student);
-        return student;
+        if (student == null) {
+            throw new IllegalArgumentException("Student payload cannot be null");
+        }
+        student.setId(null); // Ensure database assigns the auto-increment ID
+        return studentRepository.save(student);
     }
 
     /**
-     * Update an existing student by ID. Safe against null IDs.
+     * Update an existing student by ID.
      */
+    @Transactional
     public Optional<Student> updateStudent(Long id, Student updatedData) {
-        if (id == null || !studentMap.containsKey(id)) {
+        if (id == null || updatedData == null || !studentRepository.existsById(id)) {
             return Optional.empty();
         }
-        updatedData.setId(id);
-        studentMap.put(id, updatedData);
-        return Optional.of(updatedData);
+        updatedData.setId(id); // Enforce path ID
+        Student saved = studentRepository.save(updatedData);
+        return Optional.of(saved);
     }
 
     /**
-     * Delete a student by ID. Safe against null IDs.
+     * Delete a student by ID.
      */
+    @Transactional
     public boolean deleteStudent(Long id) {
-        if (id == null) {
+        if (id == null || !studentRepository.existsById(id)) {
             return false;
         }
-        return studentMap.remove(id) != null;
+        studentRepository.deleteById(id);
+        return true;
     }
 }
