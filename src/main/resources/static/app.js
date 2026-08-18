@@ -21,7 +21,7 @@ const state = {
     currentPage: 1,
     pageSize: 10,
     selectedIds: new Set(),
-    pendingDelete: null,  // { id, name } or 'bulk'
+    pendingDelete: null,  // { type: 'single' | 'bulk', ... }
     activeDetailStudent: null,
     isSubmitting: false,
     theme: localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
@@ -106,10 +106,18 @@ const deleteConfirmBtn= $('delete-confirm-btn');
 // Toast Container
 const toastContainer  = $('toast-container');
 
+// SVG Sort Icons
+const ICONS = {
+    sortDefault: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 15 12 20 17 15"></polyline><polyline points="7 9 12 4 17 9"></polyline></svg>`,
+    sortAsc: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>`,
+    sortDesc: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`
+};
+
 // ─── Initialization ───────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     applyTheme(state.theme);
     bindEventListeners();
+    updateSortHeaderStyles();
     loadStudents();
 });
 
@@ -213,8 +221,9 @@ function bindEventListeners() {
     detailsCloseBtn2.addEventListener('click', closeDetailsModal);
     detailsEditBtn.addEventListener('click', () => {
         if (state.activeDetailStudent) {
+            const studentToEdit = state.activeDetailStudent;
             closeDetailsModal();
-            openEditModal(state.activeDetailStudent);
+            openEditModal(studentToEdit);
         }
     });
 
@@ -348,14 +357,17 @@ function applyFiltersAndRender() {
 }
 
 function updateSortHeaderStyles() {
-    document.querySelectorAll('.data-table thead th.sortable').forEach(th => {
-        th.classList.remove('sorted-asc', 'sorted-desc');
-        const icon = th.querySelector('.sort-icon');
-        if (icon) icon.textContent = '⇅';
+    ['id', 'name', 'email', 'course', 'age'].forEach(col => {
+        const th = document.querySelector(`.data-table thead th[data-sort="${col}"]`);
+        const iconSpan = $(`sort-icon-${col}`);
+        if (!th || !iconSpan) return;
 
-        if (th.dataset.sort === state.sortColumn) {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        if (col === state.sortColumn) {
             th.classList.add(state.sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
-            if (icon) icon.textContent = state.sortDirection === 'asc' ? '↑' : '↓';
+            iconSpan.innerHTML = state.sortDirection === 'asc' ? ICONS.sortAsc : ICONS.sortDesc;
+        } else {
+            iconSpan.innerHTML = ICONS.sortDefault;
         }
     });
 }
@@ -437,45 +449,45 @@ function renderTableRows() {
         if (isSelected) tr.classList.add('selected');
 
         tr.innerHTML = `
-            <td class="checkbox-cell">
+            <td class="col-cb">
                 <input type="checkbox" class="custom-checkbox row-select-cb" data-id="${student.id}" ${isSelected ? 'checked' : ''} aria-label="Select student">
             </td>
-            <td>
+            <td class="col-id">
                 <span class="student-id-badge">#${student.id}</span>
             </td>
-            <td>
+            <td class="col-name">
                 <div class="student-identity">
                     <div class="student-avatar" aria-hidden="true">${initials}</div>
-                    <span class="student-name-text">${escapeHtml(student.name)}</span>
+                    <span class="student-name-text" title="${escapeHtml(student.name)}">${escapeHtml(student.name)}</span>
                 </div>
             </td>
-            <td>
-                <span class="student-email-sub">${escapeHtml(student.email)}</span>
+            <td class="col-email">
+                <span class="student-email-sub" title="${escapeHtml(student.email)}">${escapeHtml(student.email)}</span>
             </td>
-            <td>
+            <td class="col-course">
                 <span class="course-tag" title="${escapeHtml(student.course)}">
                     ${escapeHtml(student.course)}
                 </span>
             </td>
-            <td>
+            <td class="col-age">
                 <span class="age-badge">${student.age} yrs</span>
             </td>
-            <td>
+            <td class="col-actions">
                 <div class="row-actions">
                     <button class="action-icon-btn btn-view" title="View Profile" aria-label="View ${escapeHtml(student.name)}">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                             <circle cx="12" cy="12" r="3"></circle>
                         </svg>
                     </button>
                     <button class="action-icon-btn btn-edit" title="Edit Student" aria-label="Edit ${escapeHtml(student.name)}">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
                     </button>
                     <button class="action-icon-btn btn-delete" title="Delete Student" aria-label="Delete ${escapeHtml(student.name)}">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="3 6 5 6 21 6"></polyline>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                         </svg>
@@ -565,18 +577,18 @@ function showLoadingSkeleton() {
         const tr = document.createElement('tr');
         tr.className = 'skeleton-row';
         tr.innerHTML = `
-            <td class="checkbox-cell"><div class="skeleton" style="width:16px;height:16px;"></div></td>
-            <td><div class="skeleton skeleton-text" style="width:30px;"></div></td>
-            <td>
+            <td class="col-cb"><div class="skeleton" style="width:16px;height:16px;"></div></td>
+            <td class="col-id"><div class="skeleton skeleton-text" style="width:30px;"></div></td>
+            <td class="col-name">
                 <div class="student-identity">
                     <div class="skeleton skeleton-avatar"></div>
                     <div class="skeleton skeleton-text" style="width:120px;"></div>
                 </div>
             </td>
-            <td><div class="skeleton skeleton-text" style="width:160px;"></div></td>
-            <td><div class="skeleton skeleton-text" style="width:100px;"></div></td>
-            <td><div class="skeleton skeleton-text" style="width:40px;"></div></td>
-            <td><div class="skeleton skeleton-text" style="width:80px;float:right;"></div></td>
+            <td class="col-email"><div class="skeleton skeleton-text" style="width:150px;"></div></td>
+            <td class="col-course"><div class="skeleton skeleton-text" style="width:90px;"></div></td>
+            <td class="col-age"><div class="skeleton skeleton-text" style="width:35px;"></div></td>
+            <td class="col-actions"><div class="skeleton skeleton-text" style="width:70px;float:right;"></div></td>
         `;
         tableBody.appendChild(tr);
     }
@@ -586,7 +598,7 @@ function showEmptyState(isFiltered) {
     stateContainer.innerHTML = `
         <div class="state-box">
             <div class="state-illustration">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
@@ -598,8 +610,8 @@ function showEmptyState(isFiltered) {
                     : 'Get started by creating your first student record in the database.'}
             </p>
             ${isFiltered 
-                ? '<button id="reset-filters-btn" class="btn btn-secondary btn-md" style="margin-top:0.5rem;">Reset Filters</button>' 
-                : '<button id="empty-add-btn" class="btn btn-primary btn-md" style="margin-top:0.5rem;">+ Add Student</button>'}
+                ? '<button id="reset-filters-btn" class="btn btn-secondary btn-md" style="margin-top:0.4rem;">Reset Filters</button>' 
+                : '<button id="empty-add-btn" class="btn btn-primary btn-md" style="margin-top:0.4rem;">+ Add Student</button>'}
         </div>
     `;
 
@@ -624,7 +636,7 @@ function showErrorState(errorMessage) {
     stateContainer.innerHTML = `
         <div class="state-box">
             <div class="state-illustration" style="background:var(--color-danger-bg);color:var(--color-danger);">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="8" x2="12" y2="12"></line>
                     <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -632,7 +644,7 @@ function showErrorState(errorMessage) {
             </div>
             <h3 class="state-title">Unable to load student directory</h3>
             <p class="state-description">${escapeHtml(errorMessage)}</p>
-            <button id="retry-btn" class="btn btn-primary btn-md" style="margin-top:0.5rem;">Retry Connection</button>
+            <button id="retry-btn" class="btn btn-primary btn-md" style="margin-top:0.4rem;">Retry Connection</button>
         </div>
     `;
 
@@ -912,9 +924,9 @@ function closeModal(overlay) {
 // ─── Toast System ─────────────────────────────────────────────────────────────
 function showToast(message, type = 'info') {
     const icons = {
-        success: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
-        error: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`,
-        info: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
+        success: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+        error: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`,
+        info: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
     };
 
     const toast = document.createElement('div');
@@ -923,7 +935,7 @@ function showToast(message, type = 'info') {
         <span class="toast-icon" aria-hidden="true">${icons[type] || icons.info}</span>
         <span class="toast-content">${escapeHtml(message)}</span>
         <button class="toast-close-btn" aria-label="Dismiss notification">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
