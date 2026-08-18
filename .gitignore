@@ -34,9 +34,13 @@ dependency-reduced-pom.xml
 .settings/
 *.iml
 
-# Environment
+# Environment & Local Configuration
 .env
 .env.local
+src/main/resources/application-dev.properties
+src/main/resources/application-local.properties
+src/main/resources/application-*.properties
+!src/main/resources/application.properties
 
 # Claude Code
 .claude/
