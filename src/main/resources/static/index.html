@@ -7,7 +7,7 @@
     <title>Student Management System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -32,7 +32,7 @@
             <div class="header-controls">
                 <div class="status-badge" title="Database Connected">
                     <span class="status-dot"></span>
-                    <span>MSSQL Active</span>
+                    <span>System Online</span>
                 </div>
 
                 <!-- Theme Switcher -->
@@ -69,7 +69,7 @@
             </div>
             <div class="page-actions">
                 <button id="export-csv-btn" class="btn btn-secondary btn-md" title="Export student records as CSV">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -77,7 +77,7 @@
                     Export CSV
                 </button>
                 <button id="open-add-modal-btn" class="btn btn-primary btn-md" aria-haspopup="dialog">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
@@ -86,11 +86,11 @@
             </div>
         </div>
 
-        <!-- Metric Statistics Grid -->
+        <!-- Metric Statistics Grid (4 Columns) -->
         <div class="stats-grid" role="region" aria-label="Key Metrics">
             <div class="stat-card blue">
                 <div class="stat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -105,7 +105,7 @@
 
             <div class="stat-card green">
                 <div class="stat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                     </svg>
@@ -118,7 +118,7 @@
 
             <div class="stat-card amber">
                 <div class="stat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
@@ -131,7 +131,7 @@
 
             <div class="stat-card purple">
                 <div class="stat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                     </svg>
                 </div>
@@ -151,7 +151,7 @@
                     <!-- Live Search -->
                     <div class="search-box">
                         <span class="search-icon" aria-hidden="true">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
@@ -178,7 +178,7 @@
 
                 <div class="toolbar-right">
                     <button id="refresh-btn" class="btn btn-secondary btn-md" title="Refresh student data">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="23 4 23 10 17 10"></polyline>
                             <polyline points="1 20 1 14 7 14"></polyline>
                             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
@@ -209,25 +209,25 @@
                 <table class="data-table" aria-label="Student records">
                     <thead>
                         <tr>
-                            <th scope="col" class="checkbox-cell">
+                            <th scope="col" class="col-cb">
                                 <input type="checkbox" id="select-all-checkbox" class="custom-checkbox" aria-label="Select all students">
                             </th>
-                            <th scope="col" class="sortable" data-sort="id">
-                                <span class="th-content">ID <span class="sort-icon">⇅</span></span>
+                            <th scope="col" class="col-id sortable" data-sort="id">
+                                <span class="th-content">ID <span class="sort-icon-svg" id="sort-icon-id"></span></span>
                             </th>
-                            <th scope="col" class="sortable" data-sort="name">
-                                <span class="th-content">Student Name <span class="sort-icon">⇅</span></span>
+                            <th scope="col" class="col-name sortable" data-sort="name">
+                                <span class="th-content">Student Name <span class="sort-icon-svg" id="sort-icon-name"></span></span>
                             </th>
-                            <th scope="col" class="sortable" data-sort="email">
-                                <span class="th-content">Email Address <span class="sort-icon">⇅</span></span>
+                            <th scope="col" class="col-email sortable" data-sort="email">
+                                <span class="th-content">Email Address <span class="sort-icon-svg" id="sort-icon-email"></span></span>
                             </th>
-                            <th scope="col" class="sortable" data-sort="course">
-                                <span class="th-content">Enrolled Course <span class="sort-icon">⇅</span></span>
+                            <th scope="col" class="col-course sortable" data-sort="course">
+                                <span class="th-content">Enrolled Course <span class="sort-icon-svg" id="sort-icon-course"></span></span>
                             </th>
-                            <th scope="col" class="sortable" data-sort="age">
-                                <span class="th-content">Age <span class="sort-icon">⇅</span></span>
+                            <th scope="col" class="col-age sortable" data-sort="age">
+                                <span class="th-content">Age <span class="sort-icon-svg" id="sort-icon-age"></span></span>
                             </th>
-                            <th scope="col">Actions</th>
+                            <th scope="col" class="col-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="table-body">
@@ -280,7 +280,7 @@
             <form id="student-form" novalidate>
                 <input type="hidden" id="field-id">
 
-                <div class="form-grid-2" style="margin-bottom: 1rem;">
+                <div class="form-grid-2">
                     <div class="form-group">
                         <label class="form-label" for="field-name">
                             Full Name <span class="req">*</span>
@@ -363,10 +363,10 @@
             </button>
         </div>
         <div class="modal-body">
-            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border-subtle);">
-                <div id="detail-avatar" class="student-avatar" style="width:52px;height:52px;font-size:1.25rem;">PP</div>
+            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--border-subtle);">
+                <div id="detail-avatar" class="student-avatar" style="width:48px;height:48px;font-size:1.125rem;">PP</div>
                 <div>
-                    <h3 id="detail-name" style="font-size:1.125rem;font-weight:700;color:var(--text-primary);">Student Name</h3>
+                    <h3 id="detail-name" style="font-size:1.0625rem;font-weight:700;color:var(--text-primary);">Student Name</h3>
                     <span id="detail-id" class="student-id-badge">#0</span>
                 </div>
             </div>
@@ -398,17 +398,17 @@
 
 <!-- ── Delete Confirmation Modal ─────────────────────────────────────────── -->
 <div id="delete-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
-    <div class="modal-dialog" style="max-width: 440px;">
-        <div class="modal-body" style="text-align:center;padding:2rem 1.5rem 1.5rem;">
-            <div style="width:52px;height:52px;border-radius:var(--radius-full);background:var(--color-danger-bg);color:var(--color-danger);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="modal-dialog" style="max-width: 420px;">
+        <div class="modal-body" style="text-align:center;padding:1.75rem 1.25rem 1.25rem;">
+            <div style="width:44px;height:44px;border-radius:var(--radius-full);background:var(--color-danger-bg);color:var(--color-danger);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                     <line x1="12" y1="9" x2="12" y2="13"></line>
                     <line x1="12" y1="17" x2="12.01" y2="17"></line>
                 </svg>
             </div>
-            <h3 id="delete-modal-title" style="font-size:1.15rem;font-weight:700;color:var(--text-primary);margin-bottom:0.5rem;">Delete Student Record?</h3>
-            <p id="delete-modal-desc" style="font-size:0.875rem;color:var(--text-secondary);line-height:1.5;">
+            <h3 id="delete-modal-title" style="font-size:1.0625rem;font-weight:700;color:var(--text-primary);margin-bottom:0.4rem;">Delete Student Record?</h3>
+            <p id="delete-modal-desc" style="font-size:0.84375rem;color:var(--text-secondary);line-height:1.45;">
                 Are you sure you want to delete <strong id="delete-student-name">this student</strong>? This action will permanently remove the record from the database.
             </p>
         </div>
