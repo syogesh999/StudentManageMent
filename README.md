@@ -1,84 +1,121 @@
-# 🎓 Student Management System
+# 🎓 Student Management System — Spring Boot & MSSQL Learning Lab
 
-A minimal, clean Spring Boot Student CRUD application
+A clean, production-structured Spring Boot CRUD application featuring a responsive modern Web UI, Spring Data JPA persistence with **Microsoft SQL Server (MSSQL)**, and a test suite with 100% test pass rate.
 
 ---
 
 ## 🚀 Quick Start
 
-**Prerequisites:** Java 17+
+**Prerequisites:** 
+- Java 17+
+- Microsoft SQL Server (MSSQL 2016+) with a database named `StudentDB`
 
-### Windows (PowerShell)
+### 1. Run the Application
+
+#### Windows (PowerShell)
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-### Linux / macOS
+#### Linux / macOS
 ```bash
 ./mvnw spring-boot:run
 ```
 
-Open → **http://localhost:8080/**
+Open your browser at: **[http://localhost:8080/](http://localhost:8080/)**
 
 ---
 
-## 🌐 Web Application
+## 🏗️ Architecture & Request Lifecycle
+
+This application follows standard Spring Boot **Multi-Tier Layered Architecture**:
+
+```
+Browser / Client (UI or Postman)
+      │
+      ▼ HTTP Request (e.g. POST /api/students)
+┌────────────────────────────────────────────────────────┐
+│ Embedded Apache Tomcat Server (Port 8080)              │
+│   └─ DispatcherServlet (Spring Front Controller)       │
+│         └─ HandlerMapping (Matches route URL)          │
+└─────────────────────────┬──────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────┐
+│ 1. Controller Layer: StudentController.java            │
+│    • Handles HTTP verbs, URL paths, JSON parsing       │
+│    • Returns ResponseEntity with HTTP Status Codes     │
+└─────────────────────────┬──────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────┐
+│ 2. Service Layer: StudentService.java                  │
+│    • Manages business logic and validations            │
+│    • Controls @Transactional database boundaries       │
+└─────────────────────────┬──────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────┐
+│ 3. Data Access Layer: StudentRepository.java           │
+│    • Extends JpaRepository<Student, Long>              │
+│    • Spring Data JPA auto-generates CRUD SQL queries   │
+└─────────────────────────┬──────────────────────────────┘
+                          │
+                          ▼
+┌────────────────────────────────────────────────────────┐
+│ 4. Database: Microsoft SQL Server (MSSQL)              │
+│    • Stores records permanently in table: 'students'   │
+└────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🌐 Web Application & Dashboard
 
 | URL | Description |
 | :-- | :-- |
-| `http://localhost:8080/` | Student Management Dashboard |
-| `http://localhost:8080/api/students` | REST API — all students |
+| `http://localhost:8080/` | Interactive Student Management Dashboard |
+| `http://localhost:8080/api/students` | REST API — JSON endpoints |
 
 ### Features
-- Add, search, edit, and delete student records
-- Real-time client-side form validation
-- Live search by name, email or course
-- Statistics: total students, unique courses, average age
-- Responsive layout (desktop table + mobile card view)
-- Success / error toast notifications
+- **Full CRUD**: Create, read, update, and delete student records.
+- **Persistent Storage**: Data is stored permanently in MSSQL Server (never lost on restart).
+- **Client-side Search**: Real-time filtering by name, email, or course.
+- **Analytics Cards**: Real-time counts of total students, unique courses, and average age.
+- **Validation**: Client-side & database-level unique constraint checks on emails.
 
 ---
 
 ## 📡 REST API Reference
 
-| Method | Endpoint | Description | Response |
-| :----- | :------- | :---------- | :------- |
-| GET    | `/api/students`      | Get all students | `200 OK` |
-| GET    | `/api/students/{id}` | Get student by ID | `200 OK` / `404` |
-| POST   | `/api/students`      | Create new student | `201 Created` |
-| PUT    | `/api/students/{id}` | Update student | `200 OK` / `404` |
-| DELETE | `/api/students/{id}` | Delete student | `204 No Content` / `404` |
+| HTTP Method | Endpoint | Description | Success Code | Error Code |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/api/students` | Retrieve all students | `200 OK` | — |
+| **GET** | `/api/students/{id}` | Retrieve student by ID | `200 OK` | `404 Not Found` |
+| **POST** | `/api/students` | Create a new student | `201 Created` | `400 Bad Request` |
+| **PUT** | `/api/students/{id}` | Update existing student | `200 OK` | `404 Not Found` |
+| **DELETE** | `/api/students/{id}` | Delete student by ID | `204 No Content` | `404 Not Found` |
 
-### Example — POST request body
+### Sample JSON Payloads
+
+#### Create Student (`POST /api/students`)
 ```json
 {
   "name": "Peter Parker",
-  "email": "peter@example.com",
+  "email": "peter.parker@example.com",
   "course": "Computer Science",
   "age": 21
 }
 ```
 
----
-
-## 🧪 Running Tests
-
-```powershell
-.\mvnw.cmd clean test
-```
-
-**Test Coverage: 53 tests across 3 suites:**
-- `StudentTest` — 11 model unit tests
-- `StudentServiceTest` — 17 service/business logic tests
-- `SpringBootPracticeApplicationTests` — 25 integration / MockMvc tests
-
----
-
-## 📦 Building a JAR
-
-```powershell
-.\mvnw.cmd clean package
-java -jar target/spring-boot-practice-1.0.0.jar
+#### Update Student (`PUT /api/students/1`)
+```json
+{
+  "name": "Peter Parker",
+  "email": "peter.parker@newdomain.com",
+  "course": "Artificial Intelligence",
+  "age": 22
+}
 ```
 
 ---
@@ -87,100 +124,105 @@ java -jar target/spring-boot-practice-1.0.0.jar
 
 ```text
 SpringBootPractice/
-├── pom.xml
-├── mvnw / mvnw.cmd
+├── pom.xml                                   ← Maven build file & dependencies
+├── mvnw / mvnw.cmd                           ← Maven wrapper scripts
 ├── src/
 │   ├── main/
 │   │   ├── java/com/example/
-│   │   │   ├── SpringBootPracticeApplication.java
+│   │   │   ├── StudentManagementApplication.java ← Main Spring Boot entry point
 │   │   │   ├── controller/
-│   │   │   │   └── StudentController.java
+│   │   │   │   └── StudentController.java        ← REST API Controller (@RestController)
 │   │   │   ├── model/
-│   │   │   │   └── Student.java
+│   │   │   │   └── Student.java                  ← Database Entity (@Entity, @Table)
+│   │   │   ├── repository/
+│   │   │   │   └── StudentRepository.java        ← Spring Data JPA Repository
 │   │   │   └── service/
-│   │   │       └── StudentService.java
+│   │   │       └── StudentService.java           ← Business logic & @Transactional service
 │   │   └── resources/
-│   │       ├── application.properties
-│   │       └── static/
-│   │           ├── index.html   ← Flat-design Student Management Dashboard
-│   │           ├── style.css    ← Design system & responsive styles
-│   │           └── app.js       ← Vanilla JS CRUD client
+│   │       ├── application.properties            ← Production base configuration template
+│   │       ├── application-dev.properties        ← Local dev configuration (git-ignored)
+│   │       └── static/                           ← Frontend assets
+│   │           ├── index.html                    ← Web dashboard UI
+│   │           ├── style.css                     ← CSS design system
+│   │           └── app.js                        ← Vanilla JS fetch client
 │   └── test/java/com/example/
-│       ├── SpringBootPracticeApplicationTests.java
-│       ├── model/StudentTest.java
-│       └── service/StudentServiceTest.java
+│       ├── StudentManagementApplicationTests.java← Context load smoke test
+│       ├── controller/
+│       │   └── StudentControllerTest.java        ← MockMvc REST API tests (12 tests)
+│       ├── model/
+│       │   └── StudentTest.java                  ← POJO unit tests (9 tests)
+│       └── service/
+│           └── StudentServiceTest.java           ← Mockito business logic tests (17 tests)
 ```
 
 ---
 
-## 🧑‍💻 Spring Boot Learning Concepts
+## 🧑‍💻 Spring Boot Key Concepts for Learners
 
-> The web UI is intentionally kept clean and user-focused.
-> All Spring Boot learning notes live here in the README.
+### 1. Separation of Concerns (Why 4 Layers?)
+- **Model (`Student.java`)**: Represents your data structure and database table schema.
+- **Repository (`StudentRepository.java`)**: Interacts directly with the database. Spring Data JPA auto-generates SQL queries at runtime without writing SQL boilerplate.
+- **Service (`StudentService.java`)**: Contains business rules, validations, and `@Transactional` boundaries. Keeps the controller clean.
+- **Controller (`StudentController.java`)**: Handles HTTP concerns (routes, status codes, JSON request/response conversion).
 
-### 1. Request Lifecycle
+### 2. Essential JPA & Spring Annotations
 
-Every browser action triggers this flow inside Spring Boot:
+| Annotation | Where It's Used | What It Does |
+| :--- | :--- | :--- |
+| `@Entity` | `Student.java` | Tells JPA/Hibernate: "Map this Java class to a database table". |
+| `@Table(name = "students")` | `Student.java` | Specifies the exact table name in MSSQL. |
+| `@Id` | `Student.java` | Marks the primary key field. |
+| `@GeneratedValue(IDENTITY)` | `Student.java` | Delegates auto-increment ID generation to SQL Server's `IDENTITY` column. |
+| `@Column(nullable=false, unique=true)` | `Student.java` | Defines column constraints (`NOT NULL`, `UNIQUE`). |
+| `@Repository` | `StudentRepository.java` | Marks interface as a Spring Data repository for database access. |
+| `@Service` | `StudentService.java` | Registers class as a Spring Service Bean in the ApplicationContext. |
+| `@Transactional` | `StudentService.java` | Wraps method execution in a database transaction (commits on success, rollbacks on failure). |
+| `@RestController` | `StudentController.java` | Marks class as a REST endpoint handler returning JSON automatically. |
 
+### 3. How Spring Data JPA Saves Code
+Instead of writing manual JDBC connections and SQL queries like:
+```java
+// Traditional JDBC (Old way - 15+ lines of boilerplate per query)
+PreparedStatement stmt = conn.prepareStatement("SELECT * FROM students WHERE id = ?");
 ```
-Browser
-  └─ fetch('/api/students', { method: 'POST', ... })
-        └─ HTTP Request (TCP/IP)
-              └─ Tomcat (Embedded Servlet Container)
-                    └─ DispatcherServlet  ← Front Controller Pattern
-                          └─ HandlerMapping  ← Finds @RequestMapping
-                                └─ StudentController  ← Handles the route
-                                      └─ StudentService  ← Business logic
-                                            └─ ConcurrentHashMap  ← In-memory data store
-                                                  └─ Returns Student object
-                                                        └─ Jackson → JSON response
-                                                              └─ HTTP Response → Browser
-```
-
-### 2. Key Spring Annotations
-
-| Annotation | Purpose |
-| :--------- | :------ |
-| `@SpringBootApplication` | Enables component scanning, auto-configuration, Spring Boot context |
-| `@RestController` | Marks class as a REST controller (combines `@Controller` + `@ResponseBody`) |
-| `@RequestMapping` | Maps URL base path to the controller |
-| `@GetMapping` | Maps HTTP GET requests |
-| `@PostMapping` | Maps HTTP POST requests |
-| `@PutMapping` | Maps HTTP PUT requests |
-| `@DeleteMapping` | Maps HTTP DELETE requests |
-| `@PathVariable` | Extracts URL path segments (e.g. `/api/students/{id}`) |
-| `@RequestBody` | Deserializes incoming JSON body into a Java object |
-| `@Service` | Marks class as a Spring-managed service bean |
-
-### 3. Separation of Concerns
-
-```
-Controller     → HTTP concerns (routing, status codes, JSON in/out)
-     ↓
-Service        → Business logic (ID generation, validation rules, data mutations)
-     ↓
-Data Store     → ConcurrentHashMap (thread-safe in-memory store; resets on restart)
+With Spring Data JPA:
+```java
+public interface StudentRepository extends JpaRepository<Student, Long> {
+    // That's it! findAll(), findById(), save(), deleteById() are generated automatically!
+}
 ```
 
-### 4. Data Storage Note
+### 4. Configuration & Security Best Practice
+- **`application.properties`**: Committed to GitHub with environment variable placeholders (`${DB_USERNAME:}`, `${DB_PASSWORD:}`) to ensure zero hardcoded passwords exist in public repositories.
+- **`application-dev.properties`**: Kept locally on your computer (listed in `.gitignore`) for local MSSQL connection settings.
 
-Student data is stored in a `ConcurrentHashMap<Long, Student>` inside `StudentService`.
-It is **in-memory only** — data resets every time the application restarts.
-This is intentional for learning. To persist data, you would add Spring Data JPA + a database.
+---
 
-### 5. HTTP Status Codes Used
+## 🧪 Running the Automated Tests
 
-| Operation | Status Code | Meaning |
-| :-------- | :---------- | :------ |
-| Read all  | `200 OK` | Success with body |
-| Read one  | `200 OK` / `404 Not Found` | Found or not found |
-| Create    | `201 Created` | New resource created |
-| Update    | `200 OK` / `404 Not Found` | Updated or not found |
-| Delete    | `204 No Content` / `404 Not Found` | Deleted or not found |
-| Bad input | `400 Bad Request` | Malformed JSON or type mismatch |
+To execute the entire test suite of **39 tests**:
 
-### 6. DispatcherServlet
+```powershell
+.\mvnw.cmd clean test
+```
 
-`DispatcherServlet` is Spring MVC's **Front Controller**.
-It receives every HTTP request from Tomcat and routes it to the correct `@RestController` method using `HandlerMapping`.
-You do not write it — Spring Boot registers it automatically when you add `spring-boot-starter-web`.
+### Test Suite Overview:
+- **`StudentTest` (9 tests)**: Validates constructors, getters/setters, boundary ages, and `toString`.
+- **`StudentServiceTest` (17 tests)**: Unit tests business logic in total isolation using Mockito mocks.
+- **`StudentControllerTest` (12 tests)**: Uses `MockMvc` to test HTTP status codes, routing, and JSON serialization.
+- **`StudentManagementApplicationTests` (1 test)**: Verifies that the Spring Boot ApplicationContext boots cleanly.
+
+---
+
+## 📦 Building for Production
+
+To compile and package the application into a standalone executable JAR:
+
+```powershell
+.\mvnw.cmd clean package
+```
+
+Run the packaged JAR:
+```powershell
+java -jar target/spring-boot-practice-1.0.0.jar
+```
