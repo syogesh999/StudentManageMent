@@ -96,6 +96,35 @@ class StudentServiceTest {
         }
 
         @Test
+        @DisplayName("Should return single-element list when only one student exists")
+        void shouldReturnSingleStudentList() {
+            // Arrange
+            when(studentRepository.findAll()).thenReturn(Collections.singletonList(sampleStudent1));
+
+            // Act
+            List<Student> students = studentService.getAllStudents();
+
+            // Assert
+            assertNotNull(students);
+            assertEquals(1, students.size());
+            assertEquals("Peter Parker", students.get(0).getName());
+            verify(studentRepository, times(1)).findAll();
+        }
+
+        @Test
+        @DisplayName("Should propagate RuntimeException when repository fails on findAll")
+        void shouldPropagateExceptionWhenRepositoryFailsOnFindAll() {
+            // Arrange
+            when(studentRepository.findAll()).thenThrow(new RuntimeException("Database connection lost"));
+
+            // Act & Assert
+            RuntimeException ex = assertThrows(RuntimeException.class,
+                    () -> studentService.getAllStudents());
+            assertEquals("Database connection lost", ex.getMessage());
+            verify(studentRepository, times(1)).findAll();
+        }
+
+        @Test
         @DisplayName("Should retrieve student by ID successfully when ID exists")
         void testGetStudentByIdFound() {
             // Arrange
@@ -135,6 +164,47 @@ class StudentServiceTest {
             // Assert
             assertFalse(result.isPresent());
             verify(studentRepository, never()).findById(any());
+        }
+
+        @Test
+        @DisplayName("Should delegate to repository when ID is zero")
+        void shouldDelegateToRepositoryForZeroId() {
+            // Arrange
+            when(studentRepository.findById(0L)).thenReturn(Optional.empty());
+
+            // Act
+            Optional<Student> result = studentService.getStudentById(0L);
+
+            // Assert
+            assertFalse(result.isPresent());
+            verify(studentRepository, times(1)).findById(0L);
+        }
+
+        @Test
+        @DisplayName("Should delegate to repository when ID is negative")
+        void shouldDelegateToRepositoryForNegativeId() {
+            // Arrange
+            when(studentRepository.findById(-1L)).thenReturn(Optional.empty());
+
+            // Act
+            Optional<Student> result = studentService.getStudentById(-1L);
+
+            // Assert
+            assertFalse(result.isPresent());
+            verify(studentRepository, times(1)).findById(-1L);
+        }
+
+        @Test
+        @DisplayName("Should propagate RuntimeException when repository fails on findById")
+        void shouldPropagateExceptionWhenRepositoryFailsOnFindById() {
+            // Arrange
+            when(studentRepository.findById(1L)).thenThrow(new RuntimeException("Query timeout"));
+
+            // Act & Assert
+            RuntimeException ex = assertThrows(RuntimeException.class,
+                    () -> studentService.getStudentById(1L));
+            assertEquals("Query timeout", ex.getMessage());
+            verify(studentRepository, times(1)).findById(1L);
         }
     }
 
@@ -196,6 +266,21 @@ class StudentServiceTest {
             // Act & Assert
             assertThrows(DataIntegrityViolationException.class, () -> studentService.createStudent(duplicate));
             verify(studentRepository, times(1)).save(duplicate);
+        }
+
+        @Test
+        @DisplayName("Should propagate generic RuntimeException from repository on save")
+        void shouldPropagateExceptionWhenRepositoryFailsOnSave() {
+            // Arrange
+            Student student = new Student("Test", "test@example.com", "Math", 20);
+            when(studentRepository.save(any(Student.class)))
+                    .thenThrow(new RuntimeException("Disk full"));
+
+            // Act & Assert
+            RuntimeException ex = assertThrows(RuntimeException.class,
+                    () -> studentService.createStudent(student));
+            assertEquals("Disk full", ex.getMessage());
+            verify(studentRepository, times(1)).save(student);
         }
     }
 
@@ -265,6 +350,37 @@ class StudentServiceTest {
             assertFalse(result.isPresent());
             verify(studentRepository, never()).save(any());
         }
+
+        @Test
+        @DisplayName("Should enforce path ID on the entity before saving to repository")
+        void shouldEnforcePathIdOnUpdatedEntity() {
+            // Arrange — data comes in with a different ID than the path
+            Student updateData = new Student(999L, "Peter", "peter@example.com", "CS", 21);
+            Student savedStudent = new Student(1L, "Peter", "peter@example.com", "CS", 21);
+            when(studentRepository.existsById(1L)).thenReturn(true);
+            when(studentRepository.save(any(Student.class))).thenReturn(savedStudent);
+
+            // Act
+            studentService.updateStudent(1L, updateData);
+
+            // Assert — verify the entity saved has the path ID, not the body ID
+            verify(studentRepository).save(argThat(s -> s.getId().equals(1L)));
+        }
+
+        @Test
+        @DisplayName("Should propagate RuntimeException when repository fails during update save")
+        void shouldPropagateExceptionWhenRepositoryFailsOnUpdate() {
+            // Arrange
+            Student updateData = new Student("Fail", "fail@example.com", "CS", 20);
+            when(studentRepository.existsById(1L)).thenReturn(true);
+            when(studentRepository.save(any(Student.class)))
+                    .thenThrow(new RuntimeException("Connection reset"));
+
+            // Act & Assert
+            RuntimeException ex = assertThrows(RuntimeException.class,
+                    () -> studentService.updateStudent(1L, updateData));
+            assertEquals("Connection reset", ex.getMessage());
+        }
     }
 
     @Nested
@@ -313,5 +429,50 @@ class StudentServiceTest {
             verify(studentRepository, never()).existsById(any());
             verify(studentRepository, never()).deleteById(any());
         }
+
+        @Test
+        @DisplayName("Should return false when deleting with zero ID that does not exist")
+        void shouldReturnFalseForZeroId() {
+            // Arrange
+            when(studentRepository.existsById(0L)).thenReturn(false);
+
+            // Act
+            boolean deleted = studentService.deleteStudent(0L);
+
+            // Assert
+            assertFalse(deleted);
+            verify(studentRepository, times(1)).existsById(0L);
+            verify(studentRepository, never()).deleteById(any());
+        }
+
+        @Test
+        @DisplayName("Should return false when deleting with negative ID that does not exist")
+        void shouldReturnFalseForNegativeId() {
+            // Arrange
+            when(studentRepository.existsById(-5L)).thenReturn(false);
+
+            // Act
+            boolean deleted = studentService.deleteStudent(-5L);
+
+            // Assert
+            assertFalse(deleted);
+            verify(studentRepository, times(1)).existsById(-5L);
+            verify(studentRepository, never()).deleteById(any());
+        }
+
+        @Test
+        @DisplayName("Should propagate RuntimeException when repository fails on deleteById")
+        void shouldPropagateExceptionWhenRepositoryFailsOnDelete() {
+            // Arrange
+            when(studentRepository.existsById(1L)).thenReturn(true);
+            doThrow(new RuntimeException("Lock timeout")).when(studentRepository).deleteById(1L);
+
+            // Act & Assert
+            RuntimeException ex = assertThrows(RuntimeException.class,
+                    () -> studentService.deleteStudent(1L));
+            assertEquals("Lock timeout", ex.getMessage());
+            verify(studentRepository, times(1)).deleteById(1L);
+        }
     }
 }
+
