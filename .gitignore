@@ -44,3 +44,6 @@ src/main/resources/application-*.properties
 
 # Claude Code
 .claude/
+
+#Application Architechure
+C:\Users\DELL\SourceCode\SpringBootPractice\APPLICATION_ARCHITECTURE.md
