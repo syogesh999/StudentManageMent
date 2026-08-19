@@ -6,6 +6,7 @@ This document describes the code and configuration present in this repository on
 
 ## 1. Project Overview
 
+
 ### Simple description
 
 This is a small student-record management application. A browser loads a static dashboard from the Spring Boot server, retrieves student records through a REST API, and lets a user list, create, edit, view, filter, sort, export, and delete records. The records are persisted through JPA to Microsoft SQL Server at runtime.
