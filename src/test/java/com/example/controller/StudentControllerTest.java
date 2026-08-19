@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,6 +19,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -100,6 +102,36 @@ class StudentControllerTest {
 
             verify(studentService, times(1)).getAllStudents();
         }
+
+        @Test
+        @DisplayName("Should return 200 OK with single-element array when one student exists")
+        void shouldReturnSingleStudentArray() throws Exception {
+            when(studentService.getAllStudents()).thenReturn(Collections.singletonList(sampleStudent1));
+
+            mockMvc.perform(get("/api/students")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$", hasSize(1)))
+                    .andExpect(jsonPath("$[0].id", is(1)))
+                    .andExpect(jsonPath("$[0].name", is("Peter Parker")))
+                    .andExpect(jsonPath("$[0].email", is("peter@example.com")))
+                    .andExpect(jsonPath("$[0].course", is("Computer Science")))
+                    .andExpect(jsonPath("$[0].age", is(21)));
+        }
+
+        @Test
+        @DisplayName("Should propagate exception when service throws RuntimeException on getAllStudents")
+        void shouldPropagateExceptionWhenServiceThrowsOnGetAll() {
+            when(studentService.getAllStudents()).thenThrow(new RuntimeException("DB down"));
+
+            Exception thrown = assertThrows(Exception.class, () ->
+                    mockMvc.perform(get("/api/students")
+                            .contentType(MediaType.APPLICATION_JSON)));
+
+            assertTrue(thrown.getCause() instanceof RuntimeException);
+            assertEquals("DB down", thrown.getCause().getMessage());
+        }
     }
 
     @Nested
@@ -136,6 +168,27 @@ class StudentControllerTest {
                     .andExpect(jsonPath("$.message", containsString("Student not found with ID: 999")));
 
             verify(studentService, times(1)).getStudentById(999L);
+        }
+
+        @Test
+        @DisplayName("Should return 400 Bad Request for non-numeric path variable")
+        void shouldReturn400ForNonNumericId() throws Exception {
+            mockMvc.perform(get("/api/students/abc")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should propagate exception when service throws RuntimeException on getById")
+        void shouldPropagateExceptionWhenGetByIdServiceThrows() {
+            when(studentService.getStudentById(1L)).thenThrow(new RuntimeException("Timeout"));
+
+            Exception thrown = assertThrows(Exception.class, () ->
+                    mockMvc.perform(get("/api/students/1")
+                            .contentType(MediaType.APPLICATION_JSON)));
+
+            assertTrue(thrown.getCause() instanceof RuntimeException);
+            assertEquals("Timeout", thrown.getCause().getMessage());
         }
     }
 
@@ -188,6 +241,66 @@ class StudentControllerTest {
                             .content(""))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("Should return 400 Bad Request for syntactically invalid JSON")
+        void shouldReturn400ForMalformedJson() throws Exception {
+            mockMvc.perform(post("/api/students")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"name\": \"Broken JSON\", age:}"))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should propagate IllegalArgumentException when service throws on create")
+        void shouldPropagateExceptionWhenServiceThrowsOnCreate() {
+            when(studentService.createStudent(any(Student.class)))
+                    .thenThrow(new IllegalArgumentException("Invalid student"));
+
+            Exception thrown = assertThrows(Exception.class, () ->
+                    mockMvc.perform(post("/api/students")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(sampleStudent1))));
+
+            assertTrue(thrown.getCause() instanceof IllegalArgumentException);
+            assertEquals("Invalid student", thrown.getCause().getMessage());
+        }
+
+        @Test
+        @DisplayName("Should propagate DataIntegrityViolationException on duplicate email create")
+        void shouldPropagateExceptionWhenDuplicateEmailOnCreate() {
+            when(studentService.createStudent(any(Student.class)))
+                    .thenThrow(new DataIntegrityViolationException("Unique constraint violation"));
+
+            Exception thrown = assertThrows(Exception.class, () ->
+                    mockMvc.perform(post("/api/students")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(sampleStudent1))));
+
+            assertTrue(thrown.getCause() instanceof DataIntegrityViolationException);
+        }
+
+        @Test
+        @DisplayName("Should return 201 with all expected JSON fields present in response")
+        void shouldReturn201WithAllFieldsInResponse() throws Exception {
+            Student saved = new Student(10L, "Groot", "groot@example.com", "Botany", 18);
+            when(studentService.createStudent(any(Student.class))).thenReturn(saved);
+
+            mockMvc.perform(post("/api/students")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(saved)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.id").exists())
+                    .andExpect(jsonPath("$.name").exists())
+                    .andExpect(jsonPath("$.email").exists())
+                    .andExpect(jsonPath("$.course").exists())
+                    .andExpect(jsonPath("$.age").exists())
+                    .andExpect(jsonPath("$.id", is(10)))
+                    .andExpect(jsonPath("$.name", is("Groot")))
+                    .andExpect(jsonPath("$.email", is("groot@example.com")))
+                    .andExpect(jsonPath("$.course", is("Botany")))
+                    .andExpect(jsonPath("$.age", is(18)));
+        }
     }
 
     @Nested
@@ -231,6 +344,39 @@ class StudentControllerTest {
 
             verify(studentService, times(1)).updateStudent(eq(999L), any(Student.class));
         }
+
+        @Test
+        @DisplayName("Should return 400 Bad Request for empty body on update")
+        void shouldReturn400ForEmptyBodyOnUpdate() throws Exception {
+            mockMvc.perform(put("/api/students/1")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(""))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should return 400 Bad Request for non-numeric path ID on update")
+        void shouldReturn400ForNonNumericIdOnUpdate() throws Exception {
+            mockMvc.perform(put("/api/students/xyz")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(sampleStudent1)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should propagate exception when service throws RuntimeException on update")
+        void shouldPropagateExceptionWhenServiceThrowsOnUpdate() {
+            when(studentService.updateStudent(eq(1L), any(Student.class)))
+                    .thenThrow(new RuntimeException("DB error"));
+
+            Exception thrown = assertThrows(Exception.class, () ->
+                    mockMvc.perform(put("/api/students/1")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(sampleStudent1))));
+
+            assertTrue(thrown.getCause() instanceof RuntimeException);
+            assertEquals("DB error", thrown.getCause().getMessage());
+        }
     }
 
     @Nested
@@ -260,5 +406,23 @@ class StudentControllerTest {
 
             verify(studentService, times(1)).deleteStudent(999L);
         }
+
+        @Test
+        @DisplayName("Should return 400 Bad Request for non-numeric path ID on delete")
+        void shouldReturn400ForNonNumericIdOnDelete() throws Exception {
+            mockMvc.perform(delete("/api/students/abc"))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should return empty response body on successful 204 delete")
+        void shouldHaveNoResponseBodyOn204Delete() throws Exception {
+            when(studentService.deleteStudent(1L)).thenReturn(true);
+
+            mockMvc.perform(delete("/api/students/1"))
+                    .andExpect(status().isNoContent())
+                    .andExpect(content().string(""));
+        }
     }
 }
+

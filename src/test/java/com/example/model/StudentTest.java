@@ -129,6 +129,58 @@ class StudentTest {
             assertNull(student.getCourse());
             assertNull(student.getAge());
         }
+
+        @Test
+        @DisplayName("Should accept empty string values for name, email, and course")
+        void shouldHandleEmptyStringFields() {
+            Student student = new Student(1L, "", "", "", 20);
+
+            assertEquals("", student.getName());
+            assertEquals("", student.getEmail());
+            assertEquals("", student.getCourse());
+        }
+
+        @Test
+        @DisplayName("Should accept whitespace-only string values without trimming")
+        void shouldHandleWhitespaceOnlyFields() {
+            Student student = new Student(1L, "   ", "   ", "   ", 20);
+
+            assertEquals("   ", student.getName());
+            assertEquals("   ", student.getEmail());
+            assertEquals("   ", student.getCourse());
+        }
+
+        @Test
+        @DisplayName("Should store very long string values without truncation")
+        void shouldHandleVeryLongStringValues() {
+            String longName = "A".repeat(1000);
+            Student student = new Student(1L, longName, "long@example.com", "Course", 25);
+
+            assertEquals(1000, student.getName().length());
+            assertEquals(longName, student.getName());
+        }
+
+        @Test
+        @DisplayName("Should handle Unicode CJK characters and emoji in fields")
+        void shouldHandleUnicodeAndEmojiCharacters() {
+            Student student = new Student(1L, "田中太郎", "tanaka@example.jp", "数学コース", 22);
+            assertEquals("田中太郎", student.getName());
+            assertEquals("数学コース", student.getCourse());
+
+            Student emojiStudent = new Student(2L, "😎 Cool Student", "cool@example.com", "Art 🎨", 19);
+            assertEquals("😎 Cool Student", emojiStudent.getName());
+            assertEquals("Art 🎨", emojiStudent.getCourse());
+        }
+
+        @Test
+        @DisplayName("Should accept negative and very large age values at POJO level")
+        void shouldHandleNegativeAndLargeAgeValues() {
+            Student negAge = new Student(1L, "Neg", "neg@example.com", "Math", -1);
+            assertEquals(-1, negAge.getAge());
+
+            Student maxAge = new Student(2L, "Max", "max@example.com", "Math", Integer.MAX_VALUE);
+            assertEquals(Integer.MAX_VALUE, maxAge.getAge());
+        }
     }
 
     @Nested
@@ -149,3 +201,4 @@ class StudentTest {
         }
     }
 }
+
